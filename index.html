@@ -190,9 +190,9 @@
                     <i class="fa-solid fa-crosshairs text-xl mb-0.5"></i>
                     <span class="text-[9px] tracking-tight">機砲射擊</span>
                 </button>
-                <button id="mobile-missile-btn" class="touch-btn btn-special w-20 h-20 rounded-full flex flex-col items-center justify-center text-white font-black shadow-2xl border-2 border-red-400/80 active:scale-90 transition select-none">
+                <button id="mobile-missile-btn" class="touch-btn btn-special w-20 h-20 rounded-full flex flex-col items-center justify-center text-white font-black shadow-2xl border-2 border-red-400/80 active:scale-90 transition select-none relative overflow-hidden">
                     <i class="fa-solid fa-rocket text-2xl mb-1"></i>
-                    <span class="text-[10px] tracking-tight">板野馬戲</span>
+                    <span id="mobile-missile-text" class="text-[10px] tracking-tight">板野馬戲</span>
                 </button>
             </div>
         </div>
@@ -849,6 +849,40 @@
                 if (this.missileCooldown > 0) {
                     this.missileCooldown--;
                 }
+
+                // Update HUD bars and Missile Button Status
+                const hpRatio = Math.max(0, this.hp / this.maxHp);
+                const hpBar = document.getElementById('hp-bar');
+                const hpVal = document.getElementById('hp-val');
+                if (hpBar) hpBar.style.width = `${hpRatio * 100}%`;
+                if (hpVal) hpVal.innerText = `${Math.ceil(hpRatio * 100)}%`;
+
+                const missileBar = document.getElementById('missile-bar');
+                const missileVal = document.getElementById('missile-val');
+                const missileBtn = document.getElementById('mobile-missile-btn');
+                
+                if (this.missileCooldown > 0) {
+                    const cdRatio = (this.maxMissileCooldown - this.missileCooldown) / this.maxMissileCooldown;
+                    if (missileBar) missileBar.style.width = `${cdRatio * 100}%`;
+                    if (missileVal) {
+                        missileVal.innerText = `${(this.missileCooldown / 60).toFixed(1)}s`;
+                        missileVal.className = 'text-gray-400';
+                    }
+                    if (missileBtn) {
+                        missileBtn.style.opacity = '0.5';
+                        missileBtn.style.pointerEvents = 'none';
+                    }
+                } else {
+                    if (missileBar) missileBar.style.width = '100%';
+                    if (missileVal) {
+                        missileVal.innerText = 'READY';
+                        missileVal.className = 'text-yellow-300';
+                    }
+                    if (missileBtn) {
+                        missileBtn.style.opacity = '1.0';
+                        missileBtn.style.pointerEvents = 'auto';
+                    }
+                }
             }
 
             shootGuns() {
@@ -1480,10 +1514,14 @@
         }
 
         const mobileMissileBtn = document.getElementById('mobile-missile-btn');
-        mobileMissileBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (gameState === 'PLAYING') player.triggerItanoCircus();
-        });
+        if (mobileMissileBtn) {
+            const handleMissileTouch = (e) => {
+                if (e) e.preventDefault();
+                if (gameState === 'PLAYING') player.triggerItanoCircus();
+            };
+            mobileMissileBtn.addEventListener('touchstart', handleMissileTouch, { passive: false });
+            mobileMissileBtn.addEventListener('click', handleMissileTouch);
+        }
 
         const gyroBtn = document.getElementById('gyro-toggle-btn');
         const gyroStatusText = document.getElementById('gyro-status-text');
